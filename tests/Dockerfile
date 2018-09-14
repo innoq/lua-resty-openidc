@@ -19,6 +19,6 @@ ADD lib/resty/openidc.lua /usr/local/openresty/lualib/resty/openidc.lua
 # mount tests
 ADD tests/spec /spec
 
-CMD busted -C spec -o plainTerminal . && (test -z "$coverage" || (\
+CMD busted ${TESTFILES:+--pattern="${TESTFILES}"} -v -C spec -o plainTerminal . && (test -z "$coverage" || (\
     luacov -c /spec/luacov/settings.luacov && \
     cat /spec/luacov/luacov.report.out ) )

@@ -250,6 +250,10 @@ end
 local function openidc_get_redirect_uri(opts)
   local scheme = opts.redirect_uri_scheme or get_scheme()
   local host = get_host_name()
+  if opts.shared_authenticator ~= nil and opts.shared_authenticator ~= "" then
+    host = opts.shared_authenticator
+  end
+
   if not host then
     -- possibly HTTP 1.0 and no Host header
     ngx.exit(ngx.HTTP_BAD_REQUEST)
@@ -317,6 +321,11 @@ local function openidc_authorize(opts, session, target_url, prompt)
   session.data.state = state
   session.data.nonce = nonce
   session.data.last_authenticated = ngx.time()
+
+  if opts.shared_authenticator ~= nil and opts.shared_authenticator ~= "" then
+    session.data.original_host =  get_host_name()
+  end
+
   session:save()
 
   -- redirect to the /authorization endpoint
@@ -1050,8 +1059,15 @@ local function openidc_authorization_response(opts, session)
   session:save()
 
   -- redirect to the URL that was accessed originally
-  log(DEBUG, "OIDC Authorization Code Flow completed -> Redirecting to original URL (" .. session.data.original_url .. ")")
-  ngx.redirect(session.data.original_url)
+  local redirect_target = session.data.original_url
+  if session.data.original_host ~= nil then
+    local scheme = opts.redirect_uri_scheme or get_scheme()
+    redirect_target = scheme .. "://" .. session.data.original_host .. session.data.original_url
+  end
+
+  log(DEBUG, "OIDC Authorization Code Flow completed -> Redirecting to original URL (" .. redirect_target .. ")")
+  ngx.redirect(redirect_target)
+
   return nil, nil, session.data.original_url, session
 end
 

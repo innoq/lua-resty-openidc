@@ -121,6 +121,10 @@ http {
              --refresh_session_interval = 900,
              --iat_slack = 600,
              --redirect_uri_scheme = "https",
+             --shared_authenticator = nil,
+             -- if the OP redirects to a central oidc proxy set the host name of the authenticator here: the proxy will then remember the original host and redirect the
+             -- the request to original_host/original_url (instead of just using original_url). For this to work, both proxies need to have the same
+             -- $session_secret set in nginx and the secret needs to be accessible by both proxies (e.g. same host policy for cookies)
              --logout_path = "/logout",
              --redirect_after_logout_uri = "/",
              -- Where should the user be redirected after logout from the RP. This option overides any end_session_endpoint that the OP may have provided in the discovery response.
